@@ -1,0 +1,78 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "extensions_db_vm_customscript_storageAccountName": {
+            "value": null
+        },
+        "extensions_db_vm_customscript_storageAccountKey": {
+            "value": null
+        },
+        "extensions_db_vm_customscript_commandToExecute": {
+            "value": null
+        },
+        "extensions_web_vm_customscript_storageAccountName": {
+            "value": null
+        },
+        "extensions_web_vm_customscript_storageAccountKey": {
+            "value": null
+        },
+        "extensions_web_vm_customscript_commandToExecute": {
+            "value": null
+        },
+        "routeTables_DB_to_FW_name": {
+            "value": null
+        },
+        "routeTables_Web_to_FW_name": {
+            "value": null
+        },
+        "virtualMachines_pan_fw_name": {
+            "value": null
+        },
+        "networkInterfaces_DBeth0_name": {
+            "value": null
+        },
+        "networkInterfaces_FWeth0_name": {
+            "value": null
+        },
+        "networkInterfaces_FWeth1_name": {
+            "value": null
+        },
+        "networkInterfaces_FWeth2_name": {
+            "value": null
+        },
+        "networkInterfaces_Webeth0_name": {
+            "value": null
+        },
+        "virtualNetworks_fwVNETpgxd_name": {
+            "value": null
+        },
+        "storageAccounts_testsapgxd_name": {
+            "value": null
+        },
+        "virtualMachines_database_vm_name": {
+            "value": null
+        },
+        "virtualMachines_webserver_vm_name": {
+            "value": null
+        },
+        "publicIPAddresses_fwPublicIP_name": {
+            "value": null
+        },
+        "publicIPAddresses_WebPublicIP_name": {
+            "value": null
+        },
+        "networkSecurityGroups_DefaultNSG_name": {
+            "value": null
+        },
+        "routeTables_Trust_to_intranetwork_name": {
+            "value": null
+        },
+        "extensions_db_vm_customscript_name": {
+            "value": null
+        },
+        "extensions_web_vm_customscript_name": {
+            "value": null
+        }
+    }
+}

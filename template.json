@@ -1,0 +1,1025 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "extensions_db_vm_customscript_storageAccountName": {
+            "defaultValue": null,
+            "type": "SecureString"
+        },
+        "extensions_db_vm_customscript_storageAccountKey": {
+            "defaultValue": null,
+            "type": "SecureString"
+        },
+        "extensions_db_vm_customscript_commandToExecute": {
+            "defaultValue": null,
+            "type": "SecureString"
+        },
+        "extensions_web_vm_customscript_storageAccountName": {
+            "defaultValue": null,
+            "type": "SecureString"
+        },
+        "extensions_web_vm_customscript_storageAccountKey": {
+            "defaultValue": null,
+            "type": "SecureString"
+        },
+        "extensions_web_vm_customscript_commandToExecute": {
+            "defaultValue": null,
+            "type": "SecureString"
+        },
+        "routeTables_DB_to_FW_name": {
+            "defaultValue": "DB-to-FW",
+            "type": "String"
+        },
+        "routeTables_Web_to_FW_name": {
+            "defaultValue": "Web-to-FW",
+            "type": "String"
+        },
+        "virtualMachines_pan_fw_name": {
+            "defaultValue": "pan-fw",
+            "type": "String"
+        },
+        "networkInterfaces_DBeth0_name": {
+            "defaultValue": "DBeth0",
+            "type": "String"
+        },
+        "networkInterfaces_FWeth0_name": {
+            "defaultValue": "FWeth0",
+            "type": "String"
+        },
+        "networkInterfaces_FWeth1_name": {
+            "defaultValue": "FWeth1",
+            "type": "String"
+        },
+        "networkInterfaces_FWeth2_name": {
+            "defaultValue": "FWeth2",
+            "type": "String"
+        },
+        "networkInterfaces_Webeth0_name": {
+            "defaultValue": "Webeth0",
+            "type": "String"
+        },
+        "virtualNetworks_fwVNETpgxd_name": {
+            "defaultValue": "fwVNETpgxd",
+            "type": "String"
+        },
+        "storageAccounts_testsapgxd_name": {
+            "defaultValue": "testsapgxd",
+            "type": "String"
+        },
+        "virtualMachines_database_vm_name": {
+            "defaultValue": "database-vm",
+            "type": "String"
+        },
+        "virtualMachines_webserver_vm_name": {
+            "defaultValue": "webserver-vm",
+            "type": "String"
+        },
+        "publicIPAddresses_fwPublicIP_name": {
+            "defaultValue": "fwPublicIP",
+            "type": "String"
+        },
+        "publicIPAddresses_WebPublicIP_name": {
+            "defaultValue": "WebPublicIP",
+            "type": "String"
+        },
+        "networkSecurityGroups_DefaultNSG_name": {
+            "defaultValue": "DefaultNSG",
+            "type": "String"
+        },
+        "routeTables_Trust_to_intranetwork_name": {
+            "defaultValue": "Trust-to-intranetwork",
+            "type": "String"
+        },
+        "extensions_db_vm_customscript_name": {
+            "defaultValue": "db-vm-customscript",
+            "type": "String"
+        },
+        "extensions_web_vm_customscript_name": {
+            "defaultValue": "web-vm-customscript",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Compute/virtualMachines/database-vm'.",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('virtualMachines_database_vm_name')]",
+            "apiVersion": "2017-12-01",
+            "location": "southeastasia",
+            "scale": null,
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_A1"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "Canonical",
+                        "offer": "UbuntuServer",
+                        "sku": "16.04-LTS",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Linux",
+                        "name": "db-osdisk",
+                        "createOption": "FromImage",
+                        "vhd": {
+                            "uri": "[concat('https', '://', parameters('storageAccounts_testsapgxd_name'), '.blob.core.windows.net', '/vhds/osdisk-DB.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "diskSizeGB": 30
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_database_vm_name')]",
+                    "adminUsername": "paloalto",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": false
+                    },
+                    "secrets": []
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_DBeth0_name'))]",
+                            "properties": {
+                                "primary": false
+                            }
+                        }
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_testsapgxd_name'))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_DBeth0_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Compute/virtualMachines/pan-fw'.",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('virtualMachines_pan_fw_name')]",
+            "apiVersion": "2017-12-01",
+            "location": "southeastasia",
+            "plan": {
+                "name": "byol",
+                "product": "vmseries1",
+                "publisher": "paloaltonetworks"
+            },
+            "scale": null,
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_D3_v2"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "paloaltonetworks",
+                        "offer": "vmseries1",
+                        "sku": "byol",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Linux",
+                        "name": "[concat(parameters('virtualMachines_pan_fw_name'),'-osDisk')]",
+                        "createOption": "FromImage",
+                        "vhd": {
+                            "uri": "[concat('https', '://', parameters('storageAccounts_testsapgxd_name'), '.blob.core.windows.net', concat('/vhds/', parameters('virtualMachines_pan_fw_name'),'-vmseries1-byol.vhd'))]"
+                        },
+                        "caching": "ReadWrite",
+                        "diskSizeGB": 60
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_pan_fw_name')]",
+                    "adminUsername": "paloalto",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": false
+                    },
+                    "secrets": []
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_FWeth0_name'))]",
+                            "properties": {
+                                "primary": true
+                            }
+                        },
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_FWeth1_name'))]",
+                            "properties": {
+                                "primary": false
+                            }
+                        },
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_FWeth2_name'))]",
+                            "properties": {
+                                "primary": false
+                            }
+                        }
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_testsapgxd_name'))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_FWeth0_name'))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_FWeth1_name'))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_FWeth2_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Compute/virtualMachines/webserver-vm'.",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('virtualMachines_webserver_vm_name')]",
+            "apiVersion": "2017-12-01",
+            "location": "southeastasia",
+            "scale": null,
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_A1"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "Canonical",
+                        "offer": "UbuntuServer",
+                        "sku": "16.04-LTS",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Linux",
+                        "name": "web-osdisk",
+                        "createOption": "FromImage",
+                        "vhd": {
+                            "uri": "[concat('https', '://', parameters('storageAccounts_testsapgxd_name'), '.blob.core.windows.net', '/vhds/osdisk-Web.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "diskSizeGB": 30
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_webserver_vm_name')]",
+                    "adminUsername": "paloalto",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": false
+                    },
+                    "secrets": []
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_Webeth0_name'))]",
+                            "properties": {
+                                "primary": false
+                            }
+                        }
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_testsapgxd_name'))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_Webeth0_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Network/networkInterfaces/DBeth0'.",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[parameters('networkInterfaces_DBeth0_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "southeastasia",
+            "tags": {
+                "displayName": "NetworkInterfaces4"
+            },
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "6d9c5eaa-7d43-47b0-beac-24e9ed9f9cbd",
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig4",
+                        "etag": "W/\"e0ad87f9-81ed-4d5a-9032-1be838a430c1\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "privateIPAddress": "10.5.4.5",
+                            "privateIPAllocationMethod": "Static",
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_fwVNETpgxd_name')), '/subnets/DB')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": [],
+                    "appliedDnsServers": [],
+                    "internalDomainNameSuffix": "bwn0lj0w04me3iyt1dczayl4fg.ix.internal.cloudapp.net"
+                },
+                "macAddress": "00-0D-3A-A0-3E-FC",
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false,
+                "primary": true
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_fwVNETpgxd_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Network/networkInterfaces/FWeth0'.",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[parameters('networkInterfaces_FWeth0_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "southeastasia",
+            "tags": {
+                "displayName": "NetworkInterfaces0"
+            },
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "0dea8f54-4889-4f62-9b13-62a053b3c472",
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig0",
+                        "etag": "W/\"a3ce6415-0c56-4f9b-8fc3-4157cc993b43\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "privateIPAddress": "10.5.0.4",
+                            "privateIPAllocationMethod": "Static",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_fwPublicIP_name'))]"
+                            },
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_fwVNETpgxd_name')), '/subnets/Mgmt')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": [],
+                    "appliedDnsServers": [],
+                    "internalDomainNameSuffix": "bwn0lj0w04me3iyt1dczayl4fg.ix.internal.cloudapp.net"
+                },
+                "macAddress": "00-0D-3A-A0-3C-34",
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false,
+                "primary": true
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_fwPublicIP_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_fwVNETpgxd_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Network/networkInterfaces/FWeth1'.",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[parameters('networkInterfaces_FWeth1_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "southeastasia",
+            "tags": {
+                "displayName": "NetworkInterfaces1"
+            },
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "4f411f63-f116-4390-a7d7-e7d399be77c9",
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "etag": "W/\"23e3dd2a-d71e-48c3-832c-88b9be578c5c\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "privateIPAddress": "10.5.1.4",
+                            "privateIPAllocationMethod": "Static",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_WebPublicIP_name'))]"
+                            },
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_fwVNETpgxd_name')), '/subnets/Untrust')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": [],
+                    "appliedDnsServers": [],
+                    "internalDomainNameSuffix": "bwn0lj0w04me3iyt1dczayl4fg.ix.internal.cloudapp.net"
+                },
+                "macAddress": "00-0D-3A-A0-40-83",
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": true,
+                "primary": false
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_WebPublicIP_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_fwVNETpgxd_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Network/networkInterfaces/FWeth2'.",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[parameters('networkInterfaces_FWeth2_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "southeastasia",
+            "tags": {
+                "displayName": "NetworkInterfaces2"
+            },
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "234609d6-271f-4667-880d-e2f46db75dea",
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig2",
+                        "etag": "W/\"10ca455e-1777-4bf5-9007-0f0b3d54b27b\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "privateIPAddress": "10.5.2.4",
+                            "privateIPAllocationMethod": "Static",
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_fwVNETpgxd_name')), '/subnets/Trust')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": [],
+                    "appliedDnsServers": [],
+                    "internalDomainNameSuffix": "bwn0lj0w04me3iyt1dczayl4fg.ix.internal.cloudapp.net"
+                },
+                "macAddress": "00-0D-3A-A0-4A-F6",
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": true,
+                "primary": false
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_fwVNETpgxd_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Network/networkInterfaces/Webeth0'.",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[parameters('networkInterfaces_Webeth0_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "southeastasia",
+            "tags": {
+                "displayName": "NetworkInterfaces3"
+            },
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "0bd35960-de6c-4e85-aacf-b46a7b26a870",
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig3",
+                        "etag": "W/\"2df5f6ae-73fd-42de-ae2b-563a542f0311\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "privateIPAddress": "10.5.3.5",
+                            "privateIPAllocationMethod": "Static",
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_fwVNETpgxd_name')), '/subnets/Web')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": [],
+                    "appliedDnsServers": [],
+                    "internalDomainNameSuffix": "bwn0lj0w04me3iyt1dczayl4fg.ix.internal.cloudapp.net"
+                },
+                "macAddress": "00-0D-3A-A0-37-BC",
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false,
+                "primary": true
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_fwVNETpgxd_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Network/networkSecurityGroups/DefaultNSG'.",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[parameters('networkSecurityGroups_DefaultNSG_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "southeastasia",
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "f871a9e8-2797-4efc-ae6d-f92ca430e150",
+                "securityRules": [
+                    {
+                        "name": "Allow-Outside-From-IP",
+                        "etag": "W/\"2392f521-3def-4d38-8f1e-665c471bf439\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "description": "Rule",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "0.0.0.0/0",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "Allow-Intra",
+                        "etag": "W/\"2392f521-3def-4d38-8f1e-665c471bf439\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "description": "Allow intra network traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "10.5.0.0/16",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 101,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "Default-Deny",
+                        "etag": "W/\"2392f521-3def-4d38-8f1e-665c471bf439\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "description": "Default-Deny if we don't match Allow rule",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 200,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ],
+                "defaultSecurityRules": [
+                    {
+                        "name": "AllowVnetInBound",
+                        "etag": "W/\"2392f521-3def-4d38-8f1e-665c471bf439\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "description": "Allow inbound traffic from all VMs in VNET",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 65000,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowAzureLoadBalancerInBound",
+                        "etag": "W/\"2392f521-3def-4d38-8f1e-665c471bf439\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "description": "Allow inbound traffic from azure load balancer",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 65001,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "DenyAllInBound",
+                        "etag": "W/\"2392f521-3def-4d38-8f1e-665c471bf439\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "description": "Deny all inbound traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 65500,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowVnetOutBound",
+                        "etag": "W/\"2392f521-3def-4d38-8f1e-665c471bf439\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "description": "Allow outbound traffic from all VMs to all VMs in VNET",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 65000,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowInternetOutBound",
+                        "etag": "W/\"2392f521-3def-4d38-8f1e-665c471bf439\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "description": "Allow outbound traffic from all VMs to Internet",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "Internet",
+                            "access": "Allow",
+                            "priority": 65001,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "DenyAllOutBound",
+                        "etag": "W/\"2392f521-3def-4d38-8f1e-665c471bf439\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "description": "Deny all outbound traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 65500,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Network/publicIPAddresses/fwPublicIP'.",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "sku": {
+                "name": "Basic",
+                "tier": "Regional"
+            },
+            "name": "[parameters('publicIPAddresses_fwPublicIP_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "southeastasia",
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "8bebc1fd-1b5a-4da8-87c3-8f50ca632420",
+                "ipAddress": "104.215.194.73",
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 4,
+                "dnsSettings": {
+                    "domainNameLabel": "pan-fwpgxd",
+                    "fqdn": "pan-fwpgxd.southeastasia.cloudapp.azure.com"
+                },
+                "ipTags": []
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Network/publicIPAddresses/WebPublicIP'.",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "sku": {
+                "name": "Basic",
+                "tier": "Regional"
+            },
+            "name": "[parameters('publicIPAddresses_WebPublicIP_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "southeastasia",
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "6b009139-c730-4063-8ee9-765b5823274d",
+                "ipAddress": "104.215.198.61",
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 4,
+                "dnsSettings": {
+                    "domainNameLabel": "pan-webpgxd",
+                    "fqdn": "pan-webpgxd.southeastasia.cloudapp.azure.com"
+                },
+                "ipTags": []
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Network/routeTables/DB-to-FW'.",
+            "type": "Microsoft.Network/routeTables",
+            "name": "[parameters('routeTables_DB_to_FW_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "southeastasia",
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "disableBgpRoutePropagation": false,
+                "routes": [
+                    {
+                        "name": "DB-to-Firewall-Web",
+                        "etag": "W/\"bb79bfa3-0519-4a15-a748-7876ce84293c\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "10.5.3.0/24",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "10.5.2.4"
+                        }
+                    },
+                    {
+                        "name": "DB-default-route",
+                        "etag": "W/\"bb79bfa3-0519-4a15-a748-7876ce84293c\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "10.5.2.4"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Network/routeTables/Trust-to-intranetwork'.",
+            "type": "Microsoft.Network/routeTables",
+            "name": "[parameters('routeTables_Trust_to_intranetwork_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "southeastasia",
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "disableBgpRoutePropagation": false,
+                "routes": [
+                    {
+                        "name": "[parameters('routeTables_Trust_to_intranetwork_name')]",
+                        "etag": "W/\"aba87e39-3c38-403e-8c43-591395dea746\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "10.5.2.4"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Network/routeTables/Web-to-FW'.",
+            "type": "Microsoft.Network/routeTables",
+            "name": "[parameters('routeTables_Web_to_FW_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "southeastasia",
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "disableBgpRoutePropagation": false,
+                "routes": [
+                    {
+                        "name": "Web-to-Firewall-DB",
+                        "etag": "W/\"f46b74c7-b9e4-4cd5-8d0c-4a58d7bf582d\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "10.5.4.0/24",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "10.5.2.4"
+                        }
+                    },
+                    {
+                        "name": "Web-default-route",
+                        "etag": "W/\"f46b74c7-b9e4-4cd5-8d0c-4a58d7bf582d\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "10.5.2.4"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Network/virtualNetworks/fwVNETpgxd'.",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('virtualNetworks_fwVNETpgxd_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "southeastasia",
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "a7a59b0d-d756-4e98-a313-d8c590617e2e",
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.5.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "Mgmt",
+                        "etag": "W/\"f88306ac-f717-4f79-84bd-95c8ade3bdd1\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "10.5.0.0/24",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_DefaultNSG_name'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "Untrust",
+                        "etag": "W/\"f88306ac-f717-4f79-84bd-95c8ade3bdd1\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "10.5.1.0/24",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_DefaultNSG_name'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "Trust",
+                        "etag": "W/\"f88306ac-f717-4f79-84bd-95c8ade3bdd1\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "10.5.2.0/24",
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTables_Trust_to_intranetwork_name'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "DB",
+                        "etag": "W/\"f88306ac-f717-4f79-84bd-95c8ade3bdd1\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "10.5.4.0/24",
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTables_DB_to_FW_name'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "Web",
+                        "etag": "W/\"f88306ac-f717-4f79-84bd-95c8ade3bdd1\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "10.5.3.0/24",
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTables_Web_to_FW_name'))]"
+                            }
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false,
+                "enableVmProtection": false
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_DefaultNSG_name'))]",
+                "[resourceId('Microsoft.Network/routeTables', parameters('routeTables_Trust_to_intranetwork_name'))]",
+                "[resourceId('Microsoft.Network/routeTables', parameters('routeTables_DB_to_FW_name'))]",
+                "[resourceId('Microsoft.Network/routeTables', parameters('routeTables_Web_to_FW_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Storage/storageAccounts/testsapgxd'.",
+            "type": "Microsoft.Storage/storageAccounts",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "Storage",
+            "name": "[parameters('storageAccounts_testsapgxd_name')]",
+            "apiVersion": "2018-03-01-preview",
+            "location": "southeastasia",
+            "tags": {},
+            "scale": null,
+            "properties": {
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": false,
+                "encryption": {
+                    "services": {
+                        "file": {
+                            "enabled": true
+                        },
+                        "blob": {
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Compute/virtualMachines/database-vm/extensions/db-vm-customscript'.",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('virtualMachines_database_vm_name'), '/', parameters('extensions_db_vm_customscript_name'))]",
+            "apiVersion": "2017-12-01",
+            "location": "southeastasia",
+            "scale": null,
+            "properties": {
+                "autoUpgradeMinorVersion": false,
+                "settings": {
+                    "fileUris": [
+                        "https://raw.githubusercontent.com/PaloAltoNetworks/azure/master/two-tier-sample/config_mysql.py"
+                    ]
+                },
+                "publisher": "Microsoft.Azure.Extensions",
+                "type": "CustomScript",
+                "typeHandlerVersion": "2.0",
+                "protectedSettings": {
+                    "storageAccountName": "[parameters('extensions_db_vm_customscript_storageAccountName')]",
+                    "storageAccountKey": "[parameters('extensions_db_vm_customscript_storageAccountKey')]",
+                    "commandToExecute": "[parameters('extensions_db_vm_customscript_commandToExecute')]"
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_database_vm_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e55f9dd1-0829-4b6d-b4a1-aeeed63af9f0/resourceGroups/test/providers/Microsoft.Compute/virtualMachines/webserver-vm/extensions/web-vm-customscript'.",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('virtualMachines_webserver_vm_name'), '/', parameters('extensions_web_vm_customscript_name'))]",
+            "apiVersion": "2017-12-01",
+            "location": "southeastasia",
+            "scale": null,
+            "properties": {
+                "autoUpgradeMinorVersion": false,
+                "settings": {
+                    "fileUris": [
+                        "https://raw.githubusercontent.com/PaloAltoNetworks/azure/master/two-tier-sample/config-fw.py"
+                    ]
+                },
+                "publisher": "Microsoft.Azure.Extensions",
+                "type": "CustomScript",
+                "typeHandlerVersion": "2.0",
+                "protectedSettings": {
+                    "storageAccountName": "[parameters('extensions_web_vm_customscript_storageAccountName')]",
+                    "storageAccountKey": "[parameters('extensions_web_vm_customscript_storageAccountKey')]",
+                    "commandToExecute": "[parameters('extensions_web_vm_customscript_commandToExecute')]"
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_webserver_vm_name'))]"
+            ]
+        }
+    ]
+}
